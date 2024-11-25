@@ -1,1 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Image Upload</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f0f9;
+            color: #333;
+        }
+
+        #answer {
+            color: black;  /* テキストの色を黒に設定 */
+            white-space: pre-wrap; /* 改行を有効にする */
+            word-wrap: break-word;
+            margin-top: 10px;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 5px;
+            font-size: 16px;
+            margin-top: 10px;
+            color: black;  /* テキストボックスの文字色を黒に設定 */
+        }
+
+        button {
+            background-color: #ff66b2; /* ピンク色 */
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #ff3385; /* ホバー時に少し濃くなる */
+        }
+
+        #im {
+            border: 1px solid #ccc;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <input type="file" id="imageInput" accept="image/*">
+    <img id="im" width="640" height="360"><br>
+        
+    <canvas id="myCanvas" style="display:none"></canvas><br>
+    <input type="text" id="txt" value="図の内容について日本語で回答してください" size="50">
+    <button id="start">送信</button>
+    <div id="answer">返信内容</div>
+    
+    <script>
+        // 初期設定
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext('2d');
+        var img = document.getElementById("im");
+
+        // 画像ファイルが選択された時の処理
+        $('#imageInput').on('change', function(event) {
+            const file = event.target.files[0];
+
+            if (file && file.type.startsWith('image/')) {
+                // 画像ファイルのObject URLを生成して<img>に設定
+                img.src = URL.createObjectURL(file);
+            }
+        });
+
+        // sendボタンがクリックされた時の処理
+        $('#start').on('click', function() {
+            // canvasのサイズを画像のサイズに合わせる
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            // canvasに画像を描画
+            ctx.drawImage(img, 0, 0);
+            
+            var imageData = canvas.toDataURL('image/png');
+            var base64Data = imageData.replace(/^data:image\/png;base64,/, "");
+
+            var txt = $('#txt').val();
+
+            // サーバーに送信
+            $.ajax({
+                type: 'POST',
+                url: 'upload',  // サーバー側のURL
+                data: {
+                    "imgurl": base64Data, "prompt": encodeURIComponent(txt)
+                },
+                success: function(response) {
+                    // サーバーからの返答が変数responseに入っている
+                    $('#answer').html(response);
+                },
+                error: function() {
+                    alert('失敗しました');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
 
