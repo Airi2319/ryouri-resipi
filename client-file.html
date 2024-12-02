@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>タブ付きインターフェース</title>
+    <title>料理検索サイト</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
@@ -75,12 +75,12 @@
 </head>
 <body>
     <div class="tab-container">
-        <div class="tab active" data-target="#tab1">画像アップロード</div>
+        <div class="tab active" data-target="#tab1">料理名とレシピの提案</div>
         <div class="tab" data-target="#tab2">冷蔵庫の料理提案</div>
     </div>
 
     <div id="tab1" class="tab-content active">
-        <h2>画像アップロード</h2>
+        <h2>料理名とレシピの提案</h2>
         <input type="file" id="imageInput" accept="image/*">
         <img id="im" width="640" height="360"><br>
         <canvas id="myCanvas" style="display:none"></canvas><br>
