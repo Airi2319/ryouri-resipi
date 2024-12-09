@@ -2,184 +2,211 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>料理検索サイト</title>
+    <title>Canvas Image Upload</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f9f0f9;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
             color: #333;
-        }
-        
-          #answer {
-            color: black;  /* テキストの色を黒に設定 */
-            white-space: pre-wrap; /* 改行を有効にする */
-            word-wrap: break-word;
-            margin-top: 10px;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        /* タブスタイル */
-        .tab-container {
-            display: flex;
-            margin-bottom: 10px;
+        header {
+            width: 100%;
+            background-color: #ff66b2;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            cursor: pointer;
-            background-color: #ddd;
-            border: 1px solid #ccc;
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 800px;
         }
 
-        .tab.active {
+        .tab button {
+            flex: 1;
+            padding: 12px;
+            background-color: #ddd;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tab button.active {
             background-color: #ff66b2;
             color: white;
         }
 
-        /* タブ内容エリア */
-        .tab-content {
+        .content {
             display: none;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
         }
 
-        .tab-content.active {
+        .content.active {
             display: block;
         }
 
-        /* 冷蔵庫画像用のスタイル */
-        #preview {
+        .answer {
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
             margin-top: 20px;
-            max-width: 80%;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: 600px;
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+            margin-bottom: 10px;
             border: 1px solid #ccc;
+            border-radius: 5px;
         }
 
-        #recipes {
-            margin-top: 20px;
-        }
-
-        button {
-            background-color: #4CAF50;
+        button.upload {
+            background-color: #ff66b2;
             color: white;
-            padding: 10px 20px;
+            padding: 12px 20px;
             border: none;
             border-radius: 5px;
             font-size: 16px;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
         }
 
-        button:hover {
-            background-color: #45a049;
+        button.upload:hover {
+            background-color: #ff3385;
+            transform: translateY(-2px);
+        }
+
+        img.im {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                font-size: 20px;
+                padding: 15px 0;
+            }
+
+            .tab button {
+                font-size: 14px;
+            }
+
+            button.upload {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="tab-container">
-        <div class="tab active" data-target="#tab1">料理名とレシピの提案</div>
-        <div class="tab" data-target="#tab2">冷蔵庫の料理提案</div>
+    <header>料理支援ツール</header>
+
+    <div class="tab">
+        <button class="tablinks active" data-tab="tab1">写真のレシピ</button>
+        <button class="tablinks" data-tab="tab2">冷蔵庫の食材で料理</button>
     </div>
 
-    <div id="tab1" class="tab-content active">
-        <h2>料理名とレシピの提案</h2>
-        <input type="file" id="imageInput" accept="image/*">
-        <img id="im" width="640" height="360"><br>
-        <canvas id="myCanvas" style="display:none"></canvas><br>
-        <input type="text" id="txt" value="図の料理名と作り方とカロリーとアレルギーを教えてください" size="50">
-        <button id="start">送信</button>
-        <div id="answer">返信内容</div>
+    <div id="tab1" class="content active">
+        <input type="file" class="imageInput" accept="image/*">
+        <img class="im" src="#" alt="画像を選択してください">
+        <canvas class="myCanvas" style="display:none"></canvas>
+        <input type="text" class="txt" value="図のレシピ名と作り方とカロリーとアレルギーを教えて">
+        <button class="upload">送信</button>
+        <div class="answer">返信内容</div>
     </div>
 
-    <div id="tab2" class="tab-content">
-        <h2>冷蔵庫の写真から作れる料理を提案</h2>
-        <input type="file" id="fridgeImageInput" accept="image/*">
-        <img id="preview" alt="画像プレビュー" style="display:none;">
-        <button id="analyze">解析して料理を探す</button>
-        <div id="recipes"></div>
+    <div id="tab2" class="content">
+        <input type="file" class="imageInput" accept="image/*">
+        <img class="im" src="#" alt="画像を選択してください">
+        <canvas class="myCanvas" style="display:none"></canvas>
+        <input type="text" class="txt" value="この写真は、冷蔵庫の中身の写真ですこの食材を使って作れる料理を、料理名と作り方をおしえて">
+        <button class="upload">送信</button>
+        <div class="answer">返信内容</div>
     </div>
 
     <script>
-        // タブ切り替え
-        $('.tab').on('click', function() {
-            // 全てのタブを非アクティブ化
-            $('.tab').removeClass('active');
-            $('.tab-content').removeClass('active');
+        $(document).ready(function() {
+            // タブの切り替え
+            $('.tab button').on('click', function() {
+                var tabId = $(this).data('tab');
 
-            // クリックされたタブをアクティブ化
-            $(this).addClass('active');
-            $($(this).data('target')).addClass('active');
-        });
+                $('.tab button').removeClass('active');
+                $(this).addClass('active');
 
-        // 画像アップロード機能（タブ1）
-        var canvas = document.getElementById('myCanvas');
-        var ctx = canvas.getContext('2d');
-        var img = document.getElementById("im");
-
-        $('#imageInput').on('change', function(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                img.src = URL.createObjectURL(file);
-            }
-        });
-
-        $('#start').on('click', function() {
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            var imageData = canvas.toDataURL('image/png');
-            var base64Data = imageData.replace(/^data:image\/png;base64,/, "");
-            var txt = $('#txt').val();
-
-            $.ajax({
-                type: 'POST',
-                url: '/upload',
-                data: { "imgurl": base64Data, "prompt": encodeURIComponent(txt) },
-                success: function(response) {
-                    $('#answer').html(response);
-                },
-                error: function() {
-                    alert("送信に失敗しました。");
-                }
+                $('.content').removeClass('active');
+                $('#' + tabId).addClass('active');
             });
-        });
 
-        // 冷蔵庫画像から料理を提案（タブ2）
-        $('#fridgeImageInput').on('change', function(event) {
-            const file = event.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    $('#preview').attr('src', e.target.result).show();
-                };
-                reader.readAsDataURL(file);
-            } else {
-                alert("画像ファイルを選択してください。");
-            }
-        });
+            // 画像アップロードと送信処理
+            $('.content').each(function() {
+                var $content = $(this);
+                var canvas = $content.find('.myCanvas')[0];
+                var ctx = canvas.getContext('2d');
+                var img = $content.find('.im')[0];
 
-        $('#analyze').on('click', function() {
-            const fileInput = $('#fridgeImageInput')[0];
-            if (!fileInput.files[0]) {
-                alert("画像を選択してください。");
-                return;
-            }
+                $content.find('.imageInput').on('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        img.src = URL.createObjectURL(file);
+                    }
+                });
 
-            const formData = new FormData();
-            formData.append('image', fileInput.files[0]);
+                $content.find('.upload').on('click', function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
 
-            $.ajax({
-                url: '/analyze', // サーバー側のエンドポイント
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    $('#recipes').html('<h2>作れる料理</h2><ul>' +
-                        response.recipes.map(recipe => `<li>${recipe}</li>`).join('') +
-                        '</ul>');
-                },
-                error: function() {
-                    alert("画像の解析に失敗しました。");
-                }
+                    var imageData = canvas.toDataURL('image/png');
+                    var base64Data = imageData.replace(/^data:image\/png;base64,/, "");
+                    var txt = $content.find('.txt').val();
+
+                    $.ajax({
+                        type: 'POST',
+                        url: 'upload',
+                        data: {
+                            "imgurl": base64Data, "prompt": encodeURIComponent(txt)
+                        },
+                        success: function(response) {
+                            $content.find('.answer').html(response);
+                        },
+                        error: function() {
+                            alert('失敗しました');
+                        }
+                    });
+                });
             });
         });
     </script>
