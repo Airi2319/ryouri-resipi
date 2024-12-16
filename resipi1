@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Image Upload</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            width: 100%;
+            background-color: #ff66b2;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .tab button {
+            flex: 1;
+            padding: 12px;
+            background-color: #ddd;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .tab button.active {
+            background-color: #ff66b2;
+            color: white;
+        }
+
+        .content {
+            display: none;
+            padding: 20px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .answer {
+            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button.upload {
+            background-color: #ff66b2;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button.upload:hover {
+            background-color: #ff3385;
+            transform: translateY(-2px);
+        }
+
+        img.im {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .history {
+            margin-top: 20px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .history-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .history-item:hover {
+            background-color: #f9f9f9;
+        }
+
+        .history-item img {
+            max-width: 80px;
+            margin-bottom: 10px;
+            border-radius: 3px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .history-item span {
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .recipe-details {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+        }
+
+        /* 質問文非表示 */
+        .txt {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>料理支援ツール</header>
+
+    <div class="tab">
+        <button class="tablinks active" data-tab="tab1">写真のレシピ</button>
+        <button class="tablinks" data-tab="tab2">冷蔵庫の食材で料理</button>
+    </div>
+
+    <div id="tab1" class="content active">
+        <input type="file" class="imageInput" accept="image/*">
+        <img class="im" src="#" alt="画像を選択してください">
+        <canvas class="myCanvas" style="display:none"></canvas>
+        <input type="text" class="txt" value="図のレシピ名と作り方とカロリーとアレルギーを教えて">
+        <button class="upload">送信</button>
+        <div class="answer">返信内容</div>
+        <div class="history">
+            <h3>履歴</h3>
+            <div class="history-list"></div>
+        </div>
+    </div>
+
+    <div id="tab2" class="content">
+        <input type="file" class="imageInput" accept="image/*">
+        <img class="im" src="#" alt="画像を選択してください">
+        <canvas class="myCanvas" style="display:none"></canvas>
+        <input type="text" class="txt" value="この写真は、冷蔵庫の中身の写真ですこの食材を使って作れる料理を、料理名と作り方をおしえて">
+        <button class="upload">送信</button>
+        <div class="answer">返信内容</div>
+        <div class="history">
+            <h3>履歴</h3>
+            <div class="history-list"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // タブの切り替え
+            $('.tab button').on('click', function() {
+                var tabId = $(this).data('tab');
+
+                $('.tab button').removeClass('active');
+                $(this).addClass('active');
+
+                $('.content').removeClass('active');
+                $('#' + tabId).addClass('active');
+            });
+
+            // 画像アップロードと送信処理
+            $('.content').each(function() {
+                var $content = $(this);
+                var canvas = $content.find('.myCanvas')[0];
+                var ctx = canvas.getContext('2d');
+                var img = $content.find('.im')[0];
+                var $historyList = $content.find('.history-list');
+
+                $content.find('.imageInput').on('change', function(event) {
+                    const file = event.target.files[0];
+                    if (file && file.type.startsWith('image/')) {
+                        img.src = URL.createObjectURL(file);
+                    }
+                });
+
+                $content.find('.upload').on('click', function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    var imageData = canvas.toDataURL('image/png');
+                    var base64Data = imageData.replace(/^data:image\/png;base64,/, "");
+                    var txt = $content.find('.txt').val();
+
+                    $.ajax({
+                        type: 'POST',
+                        url: 'upload',
+                        data: {
+                            "imgurl": base64Data, "prompt": encodeURIComponent(txt)
+                        },
+                        success: function(response) {
+                            $content.find('.answer').html(response);
+
+                            // レシピ名と詳細を抽出
+                            var recipeName = response.split('\n')[0]; // 1行目を料理名とする
+                            var recipeDetails = response;
+
+                            // 履歴に追加
+                            var historyItem = `
+                                <div class="history-item">
+                                    <img src="${img.src}" alt="履歴画像">
+                                    <span>${recipeName}</span>
+                                    <div class="recipe-details">${recipeDetails}</div>
+                                </div>`;
+                            $historyList.append(historyItem);
+
+                            // レシピ詳細をトグル表示
+                            $historyList.find('.history-item').last().on('click', function() {
+                                $(this).find('.recipe-details').slideToggle();
+                            });
+                        },
+                        error: function() {
+                            alert('失敗しました');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
